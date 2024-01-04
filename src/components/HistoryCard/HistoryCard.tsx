@@ -12,12 +12,13 @@ export const HistoryCard = () => {
       mb={3}
       rounded="md"
     >
-      <VStack>
+      <VStack flex={1}> 
         <Heading
           color="white"
           fontFamily="heading"
           fontSize="md"
           textTransform="capitalize"
+          numberOfLines={1}
         >
           Costas
         </Heading>
