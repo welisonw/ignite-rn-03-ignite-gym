@@ -11,14 +11,40 @@ import {
 import { Platform, TouchableOpacity } from "react-native";
 import { ScreenHeader } from "@components/ScreenHeader/ScreenHeader";
 import { UserPhoto } from "@components/UserPhoto/UserPhoto";
-import Avatar from "@assets/userPhotoDefault.png";
+// import Avatar from "@assets/userPhotoDefault.png";
+import * as ImagePicker from "expo-image-picker";
 import { Input } from "@components/Input/Input";
 import { Button } from "@components/Button/Button";
+
 
 const PHOTO_SIZE = 33;
 
 export const Profile = () => {
-  const [photoIsLoading, setPhotoIsLoading] = useState(true);
+  const [photoIsLoading, setPhotoIsLoading] = useState(false);
+  const [userPhoto, setUserPhoto] = useState("https://assets.codepen.io/1477099/internal/avatars/users/default.png");
+
+  async function handleUserPhotoSelect() {
+    setPhotoIsLoading(true);
+    
+    try {
+      // para acessar o álbum de fotos do usuário
+      const photoSelected = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        aspect: [4, 4],
+        allowsEditing: true,
+        selectionLimit: 1,
+      });
+  
+      if (photoSelected.canceled) return null;
+  
+      if (photoSelected.assets[0].uri) setUserPhoto(photoSelected.assets[0].uri);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setPhotoIsLoading(false);
+    };
+  }
 
   return (
     <VStack flex={1}>
@@ -30,7 +56,7 @@ export const Profile = () => {
       >
         <ScrollView>
           <Center mt={6} px={10}>
-            {!photoIsLoading ? (
+            {photoIsLoading ? (
               <Skeleton
                 w={PHOTO_SIZE}
                 h={PHOTO_SIZE}
@@ -40,13 +66,13 @@ export const Profile = () => {
               />
             ) : (
               <UserPhoto
-                source={Avatar}
+                source={{ uri: userPhoto }}
                 alt="Foto do usuário"
                 size={PHOTO_SIZE}
               />
             )}
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleUserPhotoSelect}>
               <Text
                 color="green.500"
                 fontFamily="heading"
