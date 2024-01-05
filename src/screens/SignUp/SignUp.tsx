@@ -7,18 +7,36 @@ import {
   Text,
   VStack,
 } from "native-base";
-import { useNavigation } from "@react-navigation/native";
-import { Platform } from "react-native";
+import {useNavigation} from "@react-navigation/native";
+import {Platform} from "react-native";
 import BackgroundImage from "@assets/background.png";
 import LogoSVG from "@assets/logo.svg";
-import { Input } from "@components/Input/Input";
-import { Button } from "@components/Button/Button";
+import {Controller, useForm} from "react-hook-form";
+import {Input} from "@components/Input/Input";
+import {Button} from "@components/Button/Button";
+
+interface FormDataProps {
+  name: string;
+  email: string;
+  password: string;
+  password_confirm: string;
+}
 
 export const SignUp = () => {
+  const {
+    control,
+    handleSubmit,
+    formState: {errors},
+  } = useForm<FormDataProps>();
+
   const navigation = useNavigation();
 
   function handleGoBack() {
     navigation.goBack();
+  }
+
+  function handleSignUp(data: FormDataProps) {
+    console.log(data);
   }
 
   return (
@@ -55,25 +73,82 @@ export const SignUp = () => {
             </Heading>
 
             <Center w="full" mb={8}>
-              <Input placeholder="Nome" />
-              <Input
-                placeholder="E-mail"
-                keyboardType="email-address"
-                autoCapitalize="none"
+              <Controller
+                control={control}
+                name="name"
+                render={({field: {value, onChange}}) => (
+                  <Input
+                    placeholder="Nome"
+                    value={value}
+                    onChangeText={onChange}
+                  />
+                )}
+                rules={{
+                  required: "O campo nome é obrigatório",
+                }}
               />
-              <Input
-                placeholder="Senha"
-                secureTextEntry
-                textContentType="newPassword"
+
+              <Text color="white">{errors.name?.message}</Text>
+
+              <Controller
+                control={control}
+                name="email"
+                render={({field: {value, onChange}}) => (
+                  <Input
+                    placeholder="E-mail"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={value}
+                    onChangeText={onChange}
+                  />
+                )}
+                rules={{
+                  required: "O campo e-mail é obrigatório",
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "E-mail inválido",
+                  },
+                }}
               />
-              <Input
-                placeholder="Confirme a senha"
-                secureTextEntry
-                textContentType="password"
+
+              <Text color="white">{errors.email?.message}</Text>
+
+              <Controller
+                control={control}
+                name="password"
+                render={({field: {value, onChange}}) => (
+                  <Input
+                    placeholder="Senha"
+                    secureTextEntry
+                    textContentType="newPassword"
+                    value={value}
+                    onChangeText={onChange}
+                  />
+                )}
+              />
+
+              <Controller
+                control={control}
+                name="password_confirm"
+                render={({field: {value, onChange}}) => (
+                  <Input
+                    placeholder="Confirme a senha"
+                    secureTextEntry
+                    textContentType="password"
+                    value={value}
+                    onChangeText={onChange}
+                    onSubmitEditing={handleSubmit(handleSignUp)}
+                    returnKeyType="send"
+                  />
+                )}
               />
             </Center>
 
-            <Button title="Criar e acessar" variant="solid" />
+            <Button
+              title="Criar e acessar"
+              variant="solid"
+              onPress={handleSubmit(handleSignUp)}
+            />
           </Center>
 
           <Button
