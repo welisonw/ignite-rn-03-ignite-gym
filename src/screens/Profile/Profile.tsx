@@ -8,24 +8,25 @@ import {
   Text,
   VStack,
 } from "native-base";
-import { Platform, TouchableOpacity } from "react-native";
+import { Alert, Platform, TouchableOpacity } from "react-native";
 import { ScreenHeader } from "@components/ScreenHeader/ScreenHeader";
 import { UserPhoto } from "@components/UserPhoto/UserPhoto";
-// import Avatar from "@assets/userPhotoDefault.png";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 import { Input } from "@components/Input/Input";
 import { Button } from "@components/Button/Button";
-
 
 const PHOTO_SIZE = 33;
 
 export const Profile = () => {
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
-  const [userPhoto, setUserPhoto] = useState("https://assets.codepen.io/1477099/internal/avatars/users/default.png");
+  const [userPhoto, setUserPhoto] = useState(
+    "https://assets.codepen.io/1477099/internal/avatars/users/default.png"
+  );
 
   async function handleUserPhotoSelect() {
     setPhotoIsLoading(true);
-    
+
     try {
       // para acessar o álbum de fotos do usuário
       const photoSelected = await ImagePicker.launchImageLibraryAsync({
@@ -35,15 +36,35 @@ export const Profile = () => {
         allowsEditing: true,
         selectionLimit: 1,
       });
-  
+
       if (photoSelected.canceled) return null;
-  
-      if (photoSelected.assets[0].uri) setUserPhoto(photoSelected.assets[0].uri);
+
+      // se existe foto selecionada Image Picker
+      if (photoSelected.assets[0].uri) {
+        const photoInfo = await FileSystem.getInfoAsync(
+          photoSelected.assets[0].uri
+        );
+
+        // se existe foto selecionada File System
+        if (photoInfo.exists) {
+          // conversão tamanho da foto de bytes (B) para megabytes (MB)
+          const PHOTO_SIZE_IN_MB = photoInfo.size / 1024 / 1024;
+
+          if (PHOTO_SIZE_IN_MB > 5) {
+            return Alert.alert(
+              "Tamanho máximo excedido",
+              "Essa imagem é muito grande. Escolha uma de até 5MB."
+            );
+          }
+
+          setUserPhoto(photoSelected.assets[0].uri);
+        }
+      }
     } catch (error) {
       console.log(error);
     } finally {
       setPhotoIsLoading(false);
-    };
+    }
   }
 
   return (
