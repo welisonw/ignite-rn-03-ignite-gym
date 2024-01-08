@@ -12,6 +12,8 @@ import {Platform} from "react-native";
 import BackgroundImage from "@assets/background.png";
 import LogoSVG from "@assets/logo.svg";
 import {Controller, useForm} from "react-hook-form";
+import * as yup from "yup";
+import {yupResolver} from "@hookform/resolvers/yup";
 import {Input} from "@components/Input/Input";
 import {Button} from "@components/Button/Button";
 
@@ -22,12 +24,30 @@ interface FormDataProps {
   password_confirm: string;
 }
 
+const signUpSchema = yup.object({
+  name: yup.string().required("O campo nome é obrigatório."),
+  email: yup
+    .string()
+    .required("O campo e-mail é obrigatório.")
+    .email("E-mail inválido"),
+  password: yup
+    .string()
+    .required("O campo senha é obrigatório.")
+    .min(6, "A senha deve conter no mínimo 6 dígitos"),
+  password_confirm: yup
+    .string()
+    .required("Confirme a senha.")
+    .oneOf([yup.ref("password")], "As senhas não conferem."),
+});
+
 export const SignUp = () => {
   const {
     control,
     handleSubmit,
     formState: {errors},
-  } = useForm<FormDataProps>();
+  } = useForm<FormDataProps>({
+    resolver: yupResolver(signUpSchema),
+  });
 
   const navigation = useNavigation();
 
@@ -67,7 +87,7 @@ export const SignUp = () => {
             </Text>
           </Center>
 
-          <Center mb={24}>
+          <Center mb={16}>
             <Heading color="gray.100" fontFamily="heading" fontSize="xl" mb={6}>
               Crie sua conta
             </Heading>
@@ -81,14 +101,10 @@ export const SignUp = () => {
                     placeholder="Nome"
                     value={value}
                     onChangeText={onChange}
+                    errorMessage={errors.name?.message}
                   />
                 )}
-                rules={{
-                  required: "O campo nome é obrigatório",
-                }}
               />
-
-              <Text color="white">{errors.name?.message}</Text>
 
               <Controller
                 control={control}
@@ -100,18 +116,10 @@ export const SignUp = () => {
                     autoCapitalize="none"
                     value={value}
                     onChangeText={onChange}
+                    errorMessage={errors.email?.message}
                   />
                 )}
-                rules={{
-                  required: "O campo e-mail é obrigatório",
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "E-mail inválido",
-                  },
-                }}
               />
-
-              <Text color="white">{errors.email?.message}</Text>
 
               <Controller
                 control={control}
@@ -123,6 +131,7 @@ export const SignUp = () => {
                     textContentType="newPassword"
                     value={value}
                     onChangeText={onChange}
+                    errorMessage={errors.password?.message}
                   />
                 )}
               />
@@ -139,6 +148,7 @@ export const SignUp = () => {
                     onChangeText={onChange}
                     onSubmitEditing={handleSubmit(handleSignUp)}
                     returnKeyType="send"
+                    errorMessage={errors.password_confirm?.message}
                   />
                 )}
               />
