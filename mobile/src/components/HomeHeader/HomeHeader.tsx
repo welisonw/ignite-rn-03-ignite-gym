@@ -6,7 +6,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
 
 export const HomeHeader = () => {
-  const { user } = useAuthContext();
+  const { user, signOut } = useAuthContext();
 
   return (
     <HStack
@@ -31,7 +31,7 @@ export const HomeHeader = () => {
         </Heading>
       </VStack>
 
-      <TouchableOpacity>
+      <TouchableOpacity onPress={signOut}>
         <Icon
           as={MaterialIcons}
           name="logout"
