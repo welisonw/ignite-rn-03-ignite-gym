@@ -1,3 +1,4 @@
+import { useAuthContext } from "@contexts/AuthContext";
 import { UserPhoto } from "@components/UserPhoto/UserPhoto";
 import { HStack, Heading, Icon, Text, VStack } from "native-base";
 import Avatar from "@assets/userPhotoDefault.png";
@@ -5,6 +6,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
 
 export const HomeHeader = () => {
+  const { user } = useAuthContext();
+
   return (
     <HStack
       alignItems="center"
@@ -14,7 +17,7 @@ export const HomeHeader = () => {
       px={8}
     >
       <UserPhoto
-        source={Avatar}
+        source={user.avatar ? { uri: user.avatar} : Avatar}
         alt="Foto do usuário"
         size={16}
       />
@@ -24,7 +27,7 @@ export const HomeHeader = () => {
           Olá,
         </Text>
         <Heading color="gray.100" fontFamily="heading" fontSize="md">
-          Usuário
+          {user.name}
         </Heading>
       </VStack>
 
