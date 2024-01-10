@@ -108,12 +108,11 @@ export const SignIn = () => {
               <Controller
                 control={control}
                 name="email"
-                render={({field: {value, onChange}}) => (
+                render={({field: {onChange}}) => (
                   <Input
                     placeholder="E-mail"
                     keyboardType="email-address"
                     autoCapitalize="none"
-                    value={value}
                     onChangeText={onChange}
                     errorMessage={errors.email?.message}
                   />
@@ -123,11 +122,10 @@ export const SignIn = () => {
               <Controller
                 control={control}
                 name="password"
-                render={({field: {value, onChange}}) => (
+                render={({field: {onChange}}) => (
                   <Input
                     placeholder="Senha"
                     secureTextEntry
-                    value={value}
                     onChangeText={onChange}
                     errorMessage={errors.password?.message}
                   />
