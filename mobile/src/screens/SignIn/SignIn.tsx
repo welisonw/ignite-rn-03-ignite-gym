@@ -8,6 +8,7 @@ import {
   VStack,
   useToast,
 } from "native-base";
+import {useAuthContext} from "@contexts/AuthContext";
 import {Controller, useForm} from "react-hook-form";
 import * as yup from "yup";
 import {yupResolver} from "@hookform/resolvers/yup";
@@ -34,6 +35,8 @@ const signInSchema = yup.object({
 });
 
 export const SignIn = () => {
+  const {signIn} = useAuthContext();
+
   const {
     control,
     handleSubmit,
@@ -42,7 +45,27 @@ export const SignIn = () => {
     resolver: yupResolver(signInSchema),
   });
 
+  const toast = useToast();
+
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
+
+  async function handleSignIn({email, password}: FormDataProps) {
+    try {
+      await signIn(email, password);
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+
+      const title = isAppError
+        ? error.message
+        : "Não foi possível acessar a conta. Tente novamente mais tarde.";
+
+      toast.show({
+        title,
+        placement: "top",
+        bgColor: "red.500",
+      });
+    }
+  }
 
   function handleNewAccount() {
     navigation.navigate("signUp");
@@ -112,7 +135,12 @@ export const SignIn = () => {
               />
             </Center>
 
-            <Button title="Acessar" variant="solid" />
+            <Button
+              title="Acessar"
+              variant="solid"
+              onPress={handleSubmit(handleSignIn)}
+              isLoading={isSubmitting}
+            />
           </Center>
 
           <Center>
