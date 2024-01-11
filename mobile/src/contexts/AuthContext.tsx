@@ -12,6 +12,7 @@ import {
   storageUserRemove,
   storageUserSave,
 } from "@storage/storageUser";
+import {storageAuthTokenSave} from "@storage/storageAuthToken";
 
 interface AuthContextProps {
   user: UserDTO;
@@ -26,7 +27,22 @@ export const AuthContextProvider = ({children}: PropsWithChildren) => {
   const [user, setUser] = useState<UserDTO>({} as UserDTO);
   const [isLoadingUserStorageData, setIsLoadingStorageData] = useState(true);
 
-  console.log(user);
+  async function storageUserAndToken(user: UserDTO, token: string) {
+    try {
+      setIsLoadingStorageData(true);
+
+      setUser(user);
+
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      await storageUserSave(user);
+      await storageAuthTokenSave(token);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoadingStorageData(false);
+    }
+  }
 
   async function signIn(email: string, password: string) {
     try {
@@ -35,9 +51,8 @@ export const AuthContextProvider = ({children}: PropsWithChildren) => {
         password,
       });
 
-      if (data.user) {
-        setUser(data.user);
-        storageUserSave(data.user);
+      if (data.user && data.token) {
+        storageUserAndToken(data.user, data.token);
       }
     } catch (error) {
       throw error;
