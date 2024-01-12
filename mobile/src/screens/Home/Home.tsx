@@ -64,8 +64,8 @@ export const Home = () => {
     }
   }
 
-  function handleOpenExerciseDetails() {
-    navigation.navigate("exercise");
+  function handleOpenExerciseDetails(id: string) {
+    navigation.navigate("exercise", {id});
   }
 
   useEffect(() => {
@@ -119,7 +119,7 @@ export const Home = () => {
             data={exercises}
             keyExtractor={(item) => String(item.id)}
             renderItem={({item}) => (
-              <ExerciseCard data={item} onPress={handleOpenExerciseDetails} />
+              <ExerciseCard data={item} onPress={() => handleOpenExerciseDetails(String(item.id))} />
             )}
             showsVerticalScrollIndicator={false}
             _contentContainerStyle={{
