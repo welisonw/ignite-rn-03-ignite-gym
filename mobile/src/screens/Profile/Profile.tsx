@@ -9,20 +9,40 @@ import {
   VStack,
 } from "native-base";
 import { Alert, Platform, TouchableOpacity } from "react-native";
-import { ScreenHeader } from "@components/ScreenHeader/ScreenHeader";
-import { UserPhoto } from "@components/UserPhoto/UserPhoto";
+import { Controller, useForm } from "react-hook-form";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
+import { ScreenHeader } from "@components/ScreenHeader/ScreenHeader";
+import { UserPhoto } from "@components/UserPhoto/UserPhoto";
 import { Input } from "@components/Input/Input";
 import { Button } from "@components/Button/Button";
+import { useAuthContext } from "@contexts/AuthContext";
 
 const PHOTO_SIZE = 33;
+
+interface FormDataProps {
+  name: string;
+  email: string;
+  password: string;
+  newPassword: string;
+  confirmNewPassword:string
+};
 
 export const Profile = () => {
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
   const [userPhoto, setUserPhoto] = useState(
     "https://assets.codepen.io/1477099/internal/avatars/users/default.png"
   );
+
+  const { user } = useAuthContext();
+
+  const { control, handleSubmit } = useForm<FormDataProps>({
+    defaultValues:{
+      name: user.name,
+      email: user.email,
+    },
+  });
+
 
   async function handleUserPhotoSelect() {
     setPhotoIsLoading(true);
@@ -61,11 +81,12 @@ export const Profile = () => {
         }
       }
     } catch (error) {
-      console.log(error);
+      throw error;
     } finally {
       setPhotoIsLoading(false);
     }
   }
+
 
   return (
     <VStack flex={1}>
@@ -105,12 +126,34 @@ export const Profile = () => {
               </Text>
             </TouchableOpacity>
 
-            <Input
-              placeholder="Nome"
-              placeholderTextColor="gray.200"
-              bgColor="gray.600"
+            <Controller
+              control={control}
+              name="name"
+              render={({ field: { value, onChange } }) => (
+                <Input
+                  placeholder="Nome"
+                  placeholderTextColor="gray.200"
+                  bgColor="gray.600"
+                  value={value}
+                  onChangeText={onChange}
+                />
+              )}
             />
-            <Input placeholder="E-mail" bgColor="gray.600" isDisabled />
+            
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { value, onChange } }) => (
+                <Input
+                  placeholder="E-mail"
+                  placeholderTextColor="gray.200"
+                  bgColor="gray.600"
+                  isDisabled
+                  value={value}
+                  onChangeText={onChange}
+                />
+              )}
+            />
           </Center>
 
           <VStack px={10} mt={12} mb={9}>
@@ -118,27 +161,54 @@ export const Profile = () => {
               Alterar senha
             </Heading>
 
-            <Input
-              placeholder="Senha atual"
-              placeholderTextColor="gray.300"
-              secureTextEntry
-              bgColor="gray.600"
-            />
-            <Input
-              placeholder="Nova senha"
-              placeholderTextColor="gray.300"
-              secureTextEntry
-              textContentType="newPassword"
-              bgColor="gray.600"
-            />
-            <Input
-              placeholder="Confirme a nova senha"
-              placeholderTextColor="gray.300"
-              secureTextEntry
-              bgColor="gray.600"
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange } }) => (
+                <Input
+                  placeholder="Senha atual"
+                  placeholderTextColor="gray.300"
+                  secureTextEntry
+                  bgColor="gray.600"
+                  onChangeText={onChange}
+                />
+              )}
             />
 
-            <Button title="Atualizar senha" variant="solid" mt={4} />
+            <Controller
+              control={control}
+              name="newPassword"
+              render={({ field: { onChange } }) => (
+                <Input
+                  placeholder="Nova senha"
+                  placeholderTextColor="gray.300"
+                  secureTextEntry
+                  textContentType="newPassword"
+                  bgColor="gray.600"
+                  onChangeText={onChange}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="confirmNewPassword"
+              render={({ field: { onChange } }) => (
+                <Input
+                  placeholder="Confirme a nova senha"
+                  placeholderTextColor="gray.300"
+                  secureTextEntry
+                  bgColor="gray.600"
+                  onChangeText={onChange}
+                />
+              )}
+            />
+
+            <Button
+              title="Atualizar senha"
+              variant="solid"
+              mt={4}
+            />
           </VStack>
         </ScrollView>
       </KeyboardAvoidingView>
