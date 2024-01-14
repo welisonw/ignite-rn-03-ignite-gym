@@ -5,8 +5,8 @@ import {
   useEffect,
   useState,
 } from "react";
-import {UserDTO} from "@dtos/UserDTO";
-import {api} from "@services/api";
+import { UserDTO } from "@dtos/UserDTO";
+import { api } from "@services/api";
 import {
   storageUserGet,
   storageUserRemove,
@@ -23,6 +23,7 @@ interface AuthContextProps {
   isLoadingUserStorageData: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updateUserProfile: (userUpdated: UserDTO) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -39,7 +40,7 @@ export const AuthContextProvider = ({children}: PropsWithChildren) => {
 
   async function signIn(email: string, password: string) {
     try {
-      const {data} = await api.post("/sessions", {
+      const { data } = await api.post("/sessions", {
         email,
         password,
       });
@@ -91,6 +92,17 @@ export const AuthContextProvider = ({children}: PropsWithChildren) => {
     }
   }
 
+  // Atualizar dados do usuário no state user e no storage
+  async function updateUserProfile(userUpdated: UserDTO) {
+    try {
+      setUser(userUpdated);
+
+      await storageUserSave(userUpdated);
+    } catch (error) {
+      throw error;
+    }; 
+  }
+
   useEffect(() => {
     loadUserData();
   }, []);
@@ -102,6 +114,7 @@ export const AuthContextProvider = ({children}: PropsWithChildren) => {
         isLoadingUserStorageData,
         signIn,
         signOut,
+        updateUserProfile,
       }}
     >
       {children}
