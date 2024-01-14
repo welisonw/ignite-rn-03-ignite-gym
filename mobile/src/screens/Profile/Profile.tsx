@@ -7,26 +7,53 @@ import {
   Skeleton,
   Text,
   VStack,
+  useToast,
 } from "native-base";
 import { Alert, Platform, TouchableOpacity } from "react-native";
 import { Controller, useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { api } from "@services/api";
+import { AppError } from "@utils/AppError";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import { ScreenHeader } from "@components/ScreenHeader/ScreenHeader";
 import { UserPhoto } from "@components/UserPhoto/UserPhoto";
 import { Input } from "@components/Input/Input";
 import { Button } from "@components/Button/Button";
-import { useAuthContext } from "@contexts/AuthContext";
+import  {useAuthContext } from "@contexts/AuthContext";
 
 const PHOTO_SIZE = 33;
 
 interface FormDataProps {
   name: string;
-  email: string;
-  password: string;
-  newPassword: string;
-  confirmNewPassword:string
-};
+  email?: string;
+  password?: string | undefined;
+  new_password?: string | null | undefined;
+  confirm_new_password?: string | null | undefined;
+}
+
+const profileSchema = yup.object({
+  name: yup.string().required("O campo nome é obrigatório."),
+  new_password: yup
+    .string()
+    .min(6, "A senha deve conter no mínimo 6 dígitos")
+    .nullable()
+    .transform((value) => (!!value ? value : null)),
+  confirm_new_password: yup
+    .string()
+    .nullable()
+    .transform((value) => (!!value ? value : null))
+    .oneOf([yup.ref("new_password")], "As senhas não conferem.")
+    .when("new_password", {
+      is: (Field: unknown) => Field,
+      then: (schema) =>
+        schema
+          .nullable()
+          .required("Informe a confirmação da nova senha.")
+          .transform((value) => (!!value ? value : null)),
+    }),
+});
 
 export const Profile = () => {
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
@@ -34,15 +61,21 @@ export const Profile = () => {
     "https://assets.codepen.io/1477099/internal/avatars/users/default.png"
   );
 
-  const { user } = useAuthContext();
+  const { user, updateUserProfile } = useAuthContext();
 
-  const { control, handleSubmit } = useForm<FormDataProps>({
-    defaultValues:{
+  const toast = useToast();
+
+  const {
+    control,
+    handleSubmit,
+    formState: {errors, isSubmitting},
+  } = useForm<FormDataProps>({
+    defaultValues: {
       name: user.name,
       email: user.email,
     },
+    resolver: yupResolver(profileSchema),
   });
-
 
   async function handleUserPhotoSelect() {
     setPhotoIsLoading(true);
@@ -87,6 +120,38 @@ export const Profile = () => {
     }
   }
 
+  async function handleProfileUpdate(data: FormDataProps) {
+    try {
+      const userUpdated = user;
+
+      userUpdated.name = data.name;
+
+      await api.put("/users", {
+        name: data.name,
+        old_password: data.password,
+        password: data.new_password,
+      });
+
+      await updateUserProfile(userUpdated);
+
+      toast.show({
+        title: "Perfil atualizado com sucesso!",
+        placement: "top",
+        bgColor: "green.500",
+      });
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError
+        ? error.message
+        : "Não foi possível atualizar os dados do perfil. Tente novamente mais tarde.";
+
+      toast.show({
+        title,
+        placement: "top",
+        bgColor: "red.500",
+      });
+    }
+  }
 
   return (
     <VStack flex={1}>
@@ -136,10 +201,11 @@ export const Profile = () => {
                   bgColor="gray.600"
                   value={value}
                   onChangeText={onChange}
+                  errorMessage={errors.name?.message}
                 />
               )}
             />
-            
+
             <Controller
               control={control}
               name="email"
@@ -149,6 +215,7 @@ export const Profile = () => {
                   placeholderTextColor="gray.200"
                   bgColor="gray.600"
                   isDisabled
+                  isReadOnly
                   value={value}
                   onChangeText={onChange}
                 />
@@ -177,8 +244,8 @@ export const Profile = () => {
 
             <Controller
               control={control}
-              name="newPassword"
-              render={({ field: { onChange } }) => (
+              name="new_password"
+              render={({field: {onChange}}) => (
                 <Input
                   placeholder="Nova senha"
                   placeholderTextColor="gray.300"
@@ -186,13 +253,14 @@ export const Profile = () => {
                   textContentType="newPassword"
                   bgColor="gray.600"
                   onChangeText={onChange}
+                  errorMessage={errors.new_password?.message}
                 />
               )}
             />
 
             <Controller
               control={control}
-              name="confirmNewPassword"
+              name="confirm_new_password"
               render={({ field: { onChange } }) => (
                 <Input
                   placeholder="Confirme a nova senha"
@@ -200,6 +268,7 @@ export const Profile = () => {
                   secureTextEntry
                   bgColor="gray.600"
                   onChangeText={onChange}
+                  errorMessage={errors.confirm_new_password?.message}
                 />
               )}
             />
@@ -208,6 +277,8 @@ export const Profile = () => {
               title="Atualizar senha"
               variant="solid"
               mt={4}
+              onPress={handleSubmit(handleProfileUpdate)}
+              isLoading={isSubmitting}
             />
           </VStack>
         </ScrollView>
