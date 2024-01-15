@@ -104,6 +104,14 @@ export const AuthContextProvider = ({children}: PropsWithChildren) => {
   }
 
   useEffect(() => {
+    const subscribe = api.registerInterceptTokenManager(signOut);
+
+    return () => {
+      subscribe();
+    }
+  }, [signOut]);
+
+  useEffect(() => {
     loadUserData();
   }, []);
 
