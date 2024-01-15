@@ -13,15 +13,16 @@ import { Alert, Platform, TouchableOpacity } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import  { useAuthContext } from "@contexts/AuthContext";
 import { api } from "@services/api";
 import { AppError } from "@utils/AppError";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
+import Avatar from "@assets/userPhotoDefault.png";
 import { ScreenHeader } from "@components/ScreenHeader/ScreenHeader";
 import { UserPhoto } from "@components/UserPhoto/UserPhoto";
 import { Input } from "@components/Input/Input";
 import { Button } from "@components/Button/Button";
-import  {useAuthContext } from "@contexts/AuthContext";
 
 const PHOTO_SIZE = 33;
 
@@ -57,9 +58,6 @@ const profileSchema = yup.object({
 
 export const Profile = () => {
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
-  const [userPhoto, setUserPhoto] = useState(
-    "https://assets.codepen.io/1477099/internal/avatars/users/default.png"
-  );
 
   const { user, updateUserProfile } = useAuthContext();
 
@@ -110,7 +108,36 @@ export const Profile = () => {
             );
           }
 
-          setUserPhoto(photoSelected.assets[0].uri);
+          const IMAGE_EXTENSION = photoSelected.assets[0].uri.split(".").pop();
+
+          const photoFile = {
+            name: `${user.name}.${IMAGE_EXTENSION}`.trim().replaceAll(" ", "-").toLowerCase(),
+            uri: photoSelected.assets[0].uri,
+            type: `${photoSelected.assets[0].type}/${IMAGE_EXTENSION}`,
+          } as any;
+
+          // formulário para fazer o upload da foto do usuário no backend
+          const userPhotoUploadForm = new FormData();
+
+          userPhotoUploadForm.append("avatar", photoFile);
+
+          const avatarUpdatedResponse = await api.patch("/users/avatar", userPhotoUploadForm, {
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "multipart/form-data",
+            },
+          });
+
+          const userUpdatedAvatar = user;
+          userUpdatedAvatar.avatar = avatarUpdatedResponse.data.avatar;
+
+          updateUserProfile(userUpdatedAvatar);
+
+          toast.show({
+            title: "Foto atualizada com sucesso!",
+            placement: "top",
+            bgColor: "green.500",
+          });
         }
       }
     } catch (error) {
@@ -173,7 +200,7 @@ export const Profile = () => {
               />
             ) : (
               <UserPhoto
-                source={{ uri: userPhoto }}
+                source={user.avatar ? { uri: `${api.defaults.baseURL}/avatar/${user.avatar}` } : Avatar}
                 alt="Foto do usuário"
                 size={PHOTO_SIZE}
               />

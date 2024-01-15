@@ -1,6 +1,7 @@
 import { useAuthContext } from "@contexts/AuthContext";
 import { UserPhoto } from "@components/UserPhoto/UserPhoto";
 import { HStack, Heading, Icon, Text, VStack } from "native-base";
+import { api } from "@services/api";
 import Avatar from "@assets/userPhotoDefault.png";
 import { MaterialIcons } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
@@ -17,7 +18,7 @@ export const HomeHeader = () => {
       px={8}
     >
       <UserPhoto
-        source={user.avatar ? { uri: user.avatar} : Avatar}
+        source={user.avatar ? { uri: `${api.defaults.baseURL}/avatar/${user.avatar}` } : Avatar}
         alt="Foto do usuário"
         size={16}
       />
