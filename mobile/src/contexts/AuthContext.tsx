@@ -45,11 +45,11 @@ export const AuthContextProvider = ({children}: PropsWithChildren) => {
         password,
       });
 
-      if (data.user && data.token) {
+      if (data.user && data.token && data.refresh_token) {
         setIsLoadingStorageData(true);
 
         await storageUserSave(data.user);
-        await storageAuthTokenSave(data.token);
+        await storageAuthTokenSave(data.token, data.refresh_token);
 
         userAndTokenUpdate(data.user, data.token);
       }
@@ -80,7 +80,7 @@ export const AuthContextProvider = ({children}: PropsWithChildren) => {
       setIsLoadingStorageData(true);
 
       const userLogged = await storageUserGet();
-      const token = await storageAuthTokenGet();
+      const { token } = await storageAuthTokenGet();
 
       if (userLogged && token) {
         userAndTokenUpdate(userLogged, token);
