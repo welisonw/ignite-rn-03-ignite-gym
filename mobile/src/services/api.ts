@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
 import { AppError } from "@utils/AppError";
-import { storageAuthTokenGet } from "@storage/storageAuthToken";
+import { storageAuthTokenGet, storageAuthTokenSave } from "@storage/storageAuthToken";
 
 interface APIInstanceProps extends AxiosInstance {
   registerInterceptTokenManager: (signOut: () => void) => () => void;
@@ -52,6 +52,26 @@ api.registerInterceptTokenManager = signOut => {
         };
 
         isRefreshing = true;
+
+        return new Promise(async (resolve, reject) => {
+          try {
+            const { data } = await api.post("/sessions/refresh-token", { refresh_token });
+
+            console.log(data)
+
+            await storageAuthTokenSave(data.token, data.refresh_token);
+          } catch (error: any) {
+            failedQueue.forEach(request => request.onFailure(error))
+
+            signOut();
+
+            reject(error);
+          } finally {
+            isRefreshing = false;
+
+            failedQueue = [];
+          };
+        });        
       };
 
       // se o problema não está relacionado a um token expirado ou inválido, desloga o usuário para ele começar o fluxo de autenticação novamente.
