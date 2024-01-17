@@ -29,7 +29,7 @@ Você pode visualizar o layout do projeto no Figma [aqui](https://www.figma.com/
 - [React Native SVG](https://github.com/software-mansion/react-native-svg)
 - [React Native SVG Transformer](https://www.npmjs.com/package/react-native-svg-transformer)
 - [Expo ImagePicker](https://docs.expo.dev/versions/latest/sdk/imagepicker/)
-- [Expo ImagePicker](https://docs.expo.dev/versions/latest/sdk/filesystem/)
+- [Expo FileSystem](https://docs.expo.dev/versions/latest/sdk/filesystem/)
 - [React Navigation](https://reactnavigation.org/)
 - [react-native-safe-area-context](https://github.com/th3rdwave/react-native-safe-area-context)
 - [React Native Screens](https://github.com/software-mansion/react-native-screens)
