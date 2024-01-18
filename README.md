@@ -1,5 +1,6 @@
 <p align='center'>
-  <img alt="Icon logo" src="./mobile/src/assets/logo-github.png" width="230px" />
+  <img alt="Icon logo" src="./mobile/src/assets/logo-github.png#gh-light-mode-only" width="230px" />
+  <img alt="Icon logo" src="./mobile/src/assets/logo.svg#gh-dark-mode-only" width="230px" />
 </p>
 
 
